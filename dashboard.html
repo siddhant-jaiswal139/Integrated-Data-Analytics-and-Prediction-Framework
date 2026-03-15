@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DataAI Dashboard</title>
+
+<!-- Chart libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:linear-gradient(120deg,#021024,#0a3d62,#1e90ff);
+color:white;
+display:flex;
+height:100vh;
+}
+
+/* LOADING SCREEN */
+
+#loadingScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:linear-gradient(120deg,#021024,#0a3d62,#1e90ff);
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+overflow:hidden;
+text-align:center;
+}
+
+.loading-stars span{
+position:absolute;
+width:3px;
+height:3px;
+background:white;
+border-radius:50%;
+opacity:0.9;
+animation:starMove linear infinite;
+}
+
+.loading-stars{
+position:absolute;
+width:100%;
+height:100%;
+top:0;
+left:0;
+}
+
+@keyframes starMove{
+0%{transform:translateY(0)}
+100%{transform:translateY(-1200px)}
+}
+
+.loaderBox{
+position:relative;
+z-index:2;
+}
+
+.aiText{
+font-size:52px;
+text-shadow:0 0 15px #74b9ff;
+}
+
+.loadingText{
+font-size:22px;
+margin-top:10px;
+}
+
+.loader{
+width:70px;
+height:70px;
+border:7px solid rgba(255,255,255,0.2);
+border-top:7px solid #74b9ff;
+border-radius:50%;
+margin:25px auto;
+animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg)}
+100%{transform:rotate(360deg)}
+}
+
+/* SIDEBAR */
+
+.sidebar{
+width:230px;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+padding:20px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+}
+
+.sidebar ul{
+list-style:none;
+padding:0;
+}
+
+.sidebar li{
+margin:15px 0;
+cursor:pointer;
+}
+
+.logout{
+padding:10px;
+border:none;
+border-radius:10px;
+background:#d63031;
+color:white;
+cursor:pointer;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+padding:30px;
+overflow:auto;
+}
+
+.card{
+background:rgba(255,255,255,0.08);
+padding:20px;
+margin-bottom:20px;
+border-radius:15px;
+backdrop-filter:blur(15px);
+}
+
+button{
+padding:10px 15px;
+margin:5px;
+border:none;
+border-radius:10px;
+background:#0984e3;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#0abde3;
+}
+
+canvas{
+background:white;
+border-radius:10px;
+margin-top:10px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+td,th{
+padding:8px;
+border-bottom:1px solid rgba(255,255,255,0.2);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOADING SCREEN -->
+
+<div id="loadingScreen">
+
+<div class="loading-stars">
+<span style="left:10%;animation-duration:8s"></span>
+<span style="left:20%;animation-duration:10s"></span>
+<span style="left:30%;animation-duration:12s"></span>
+<span style="left:40%;animation-duration:9s"></span>
+<span style="left:50%;animation-duration:11s"></span>
+<span style="left:60%;animation-duration:13s"></span>
+<span style="left:70%;animation-duration:7s"></span>
+<span style="left:80%;animation-duration:14s"></span>
+<span style="left:90%;animation-duration:9s"></span>
+</div>
+
+<div class="loaderBox">
+<h2 class="aiText">Welcome Akansha</h2>
+<p class="loadingText">Initializing DataAI Analytics Engine...</p>
+<div class="loader"></div>
+</div>
+
+</div>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+<div>
+
+<h2>DataAI</h2>
+
+<ul>
+<li>Upload Dataset</li>
+<li>Visualization</li>
+<li>ML Models</li>
+<li>Results</li>
+</ul>
+
+</div>
+
+<button class="logout" onclick="logout()">Logout</button>
+
+</div>
+
+<!-- MAIN DASHBOARD -->
+
+<div class="main">
+
+<h1>AI Data Analytics Dashboard</h1>
+
+<!-- Upload Dataset -->
+
+<div class="card">
+
+<h3>Upload Dataset (CSV)</h3>
+
+<input type="file" id="fileInput" accept=".csv">
+
+<h4 style="margin-top:20px;">Dataset Preview</h4>
+
+<table id="dataTable"></table>
+
+</div>
+
+<!-- Visualization -->
+
+<div class="card">
+
+<h3>Visualization</h3>
+
+<button onclick="showHistogram()">Histogram</button>
+<button onclick="showScatter()">Scatter</button>
+<button onclick="showBar()">Bar</button>
+<button onclick="showPie()">Pie</button>
+<button onclick="showCandle()">Candlestick</button>
+
+<canvas id="chartCanvas"></canvas>
+
+</div>
+
+<!-- ML Models -->
+
+<div class="card">
+
+<h3>Machine Learning Models</h3>
+
+<button onclick="runModel('KNN')">KNN</button>
+<button onclick="runModel('Clustering')">Clustering</button>
+<button onclick="runModel('Ridge Regression')">Ridge</button>
+<button onclick="runModel('Lasso Regression')">Lasso</button>
+<button onclick="runModel('CNN')">CNN</button>
+
+</div>
+
+<!-- Model Comparison -->
+
+<div class="card">
+
+<h3>Model Comparison</h3>
+
+<table>
+
+<tr>
+<th>Model</th>
+<th>Accuracy</th>
+<th>Time</th>
+</tr>
+
+<tr><td>KNN</td><td>89%</td><td>0.8s</td></tr>
+<tr><td>Clustering</td><td>85%</td><td>0.6s</td></tr>
+<tr><td>Ridge Regression</td><td>91%</td><td>0.4s</td></tr>
+<tr><td>Lasso Regression</td><td>90%</td><td>0.5s</td></tr>
+<tr><td>CNN</td><td>94%</td><td>1.2s</td></tr>
+
+</table>
+
+</div>
+
+<!-- Applications -->
+
+<div class="card">
+
+<h3>Where This Framework Can Be Used</h3>
+
+<ul style="line-height:1.8">
+
+<li><b>Healthcare</b> – Predict diseases using patient datasets.</li>
+<li><b>Finance</b> – Stock market trend analysis using candlestick charts.</li>
+<li><b>Retail</b> – Customer purchase behavior and sales prediction.</li>
+<li><b>Education</b> – Student performance analytics.</li>
+<li><b>Marketing</b> – Customer segmentation using clustering.</li>
+<li><b>Cybersecurity</b> – Detect unusual activity patterns.</li>
+
+</ul>
+
+</div>
+
+<!-- Prediction Results -->
+
+<div class="card">
+
+<h3>Prediction Results</h3>
+
+<p id="resultText">Run a model to see results</p>
+
+</div>
+
+</div>
+
+<script>
+
+let chart;
+
+/* loading screen */
+
+window.onload=function(){
+setTimeout(function(){
+document.getElementById("loadingScreen").style.display="none";
+},3000);
+}
+
+/* logout */
+
+function logout(){
+window.location.href="index.html";
+}
+
+/* CSV upload preview */
+
+document.getElementById("fileInput").addEventListener("change", function(event){
+
+const file = event.target.files[0];
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+const text = e.target.result;
+const rows = text.split("\n").map(r=>r.split(","));
+
+displayTable(rows);
+
+}
+
+reader.readAsText(file);
+
+});
+
+function displayTable(data){
+
+let table=document.getElementById("dataTable");
+
+table.innerHTML="";
+
+data.forEach((row,i)=>{
+
+let tr=document.createElement("tr");
+
+row.forEach(cell=>{
+
+let td=document.createElement(i==0?"th":"td");
+td.textContent=cell;
+tr.appendChild(td);
+
+});
+
+table.appendChild(tr);
+
+});
+
+}
+
+/* charts */
+
+function showHistogram(){
+
+if(chart) chart.destroy();
+
+chart=new Chart(chartCanvas,{
+type:"bar",
+data:{
+labels:["20","25","30","35","40"],
+datasets:[{
+label:"Distribution",
+data:[3,5,2,6,4],
+backgroundColor:"#0984e3"
+}]
+}
+});
+
+}
+
+function showScatter(){
+
+if(chart) chart.destroy();
+
+chart=new Chart(chartCanvas,{
+type:"scatter",
+data:{
+datasets:[{
+label:"Scatter",
+data:[
+{x:10,y:20},
+{x:15,y:30},
+{x:20,y:25},
+{x:25,y:40}
+],
+backgroundColor:"#00cec9"
+}]
+}
+});
+
+}
+
+function showBar(){
+
+if(chart) chart.destroy();
+
+chart=new Chart(chartCanvas,{
+type:"bar",
+data:{
+labels:["Product A","Product B","Product C"],
+datasets:[{
+label:"Sales",
+data:[120,190,90],
+backgroundColor:"#6c5ce7"
+}]
+}
+});
+
+}
+
+function showPie(){
+
+if(chart) chart.destroy();
+
+chart=new Chart(chartCanvas,{
+type:"pie",
+data:{
+labels:["Yes","No"],
+datasets:[{
+data:[60,40],
+backgroundColor:["#00b894","#d63031"]
+}]
+}
+});
+
+}
+
+function showCandle(){
+
+if(chart) chart.destroy();
+
+chart=new Chart(chartCanvas,{
+type:'candlestick',
+data:{
+datasets:[{
+label:'Stock Price',
+data:[
+{x:'2024-01-01',o:120,h:130,l:115,c:125},
+{x:'2024-01-02',o:125,h:135,l:120,c:132},
+{x:'2024-01-03',o:132,h:140,l:128,c:138}
+]
+}]
+}
+});
+
+}
+
+/* model simulation */
+
+function runModel(model){
+document.getElementById("resultText").innerText =
+model+" model running...\nAccuracy: 91%";
+}
+
+</script>
+
+</body>
+</html>

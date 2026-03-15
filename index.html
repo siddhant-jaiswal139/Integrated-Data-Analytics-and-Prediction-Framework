@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DataAI Login</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+background:linear-gradient(120deg,#021024,#0a3d62,#1e90ff);
+color:white;
+}
+
+/* particle canvas */
+
+#particle-canvas{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:-3;
+}
+
+/* stars */
+
+.stars span{
+position:absolute;
+width:3px;
+height:3px;
+background:white;
+border-radius:50%;
+opacity:0.8;
+animation:starMove linear infinite;
+}
+
+@keyframes starMove{
+0%{transform:translateY(0)}
+100%{transform:translateY(-1200px)}
+}
+
+/* clouds */
+
+.cloud{
+position:absolute;
+background:white;
+opacity:0.08;
+filter:blur(40px);
+border-radius:50%;
+animation:cloudMove linear infinite;
+}
+
+.cloud1{
+width:400px;
+height:200px;
+top:10%;
+left:-200px;
+animation-duration:40s;
+}
+
+.cloud2{
+width:500px;
+height:250px;
+top:60%;
+left:-300px;
+animation-duration:55s;
+}
+
+@keyframes cloudMove{
+0%{transform:translateX(0)}
+100%{transform:translateX(1800px)}
+}
+
+/* glass card */
+
+.login-card{
+width:420px;
+padding:45px;
+background:rgba(255,255,255,0.08);
+border-radius:30px;
+backdrop-filter:blur(20px);
+box-shadow:0 25px 60px rgba(0,0,0,0.5);
+text-align:center;
+animation:floatCard 6s ease-in-out infinite;
+}
+
+/* floating animation */
+
+@keyframes floatCard{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
+
+/* logo */
+
+.logo-container{
+position:relative;
+width:100px;
+height:100px;
+margin:auto;
+margin-bottom:10px;
+}
+
+.logo-ring{
+position:absolute;
+width:100%;
+height:100%;
+border-radius:50%;
+border:3px solid rgba(255,255,255,0.3);
+animation:rotate 8s linear infinite;
+}
+
+@keyframes rotate{
+from{transform:rotate(0)}
+to{transform:rotate(360deg)}
+}
+
+.logo{
+position:absolute;
+width:75px;
+height:75px;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+border-radius:50%;
+background:linear-gradient(135deg,#74b9ff,#0984e3);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:34px;
+font-weight:bold;
+box-shadow:0 0 30px #74b9ff;
+}
+
+/* text */
+
+.project{
+font-size:14px;
+opacity:0.8;
+margin-bottom:20px;
+}
+
+h2{
+margin-bottom:25px;
+font-size:30px;
+}
+
+/* inputs */
+
+input{
+width:100%;
+padding:15px;
+margin:12px 0;
+border:none;
+border-radius:15px;
+background:rgba(255,255,255,0.9);
+outline:none;
+font-size:14px;
+}
+
+/* button */
+
+button{
+width:100%;
+padding:15px;
+margin-top:18px;
+border:none;
+border-radius:18px;
+background:linear-gradient(135deg,#74b9ff,#0984e3);
+color:white;
+font-size:18px;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+box-shadow:0 0 25px #74b9ff;
+}
+
+/* small text */
+
+.small{
+margin-top:20px;
+font-size:14px;
+opacity:0.8;
+}
+
+.small span{
+color:#74b9ff;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<!-- stars -->
+
+<div class="stars">
+<span style="left:10%;animation-duration:8s"></span>
+<span style="left:20%;animation-duration:10s"></span>
+<span style="left:30%;animation-duration:12s"></span>
+<span style="left:40%;animation-duration:9s"></span>
+<span style="left:50%;animation-duration:11s"></span>
+<span style="left:60%;animation-duration:13s"></span>
+<span style="left:70%;animation-duration:7s"></span>
+<span style="left:80%;animation-duration:14s"></span>
+<span style="left:90%;animation-duration:9s"></span>
+</div>
+
+<!-- clouds -->
+
+<div class="cloud cloud1"></div>
+<div class="cloud cloud2"></div>
+
+<!-- login card -->
+
+<div class="login-card">
+
+<div class="logo-container">
+<div class="logo-ring"></div>
+<div class="logo">A</div>
+</div>
+
+<div class="project">DataAI</div>
+
+<h2>Welcome Back, Akansha</h2>
+
+<input type="email" placeholder="Email address">
+<input type="password" placeholder="Password">
+
+<button onclick="openDashboard()">Login</button>
+
+<p class="small">
+Are you new member?
+<span onclick="openSignup()">Sign Up</span>
+</p>
+
+</div>
+
+<script>
+
+/* open dashboard */
+
+function openDashboard(){
+window.location.href="dashboard.html";
+}
+
+/* open signup */
+
+function openSignup(){
+window.location.href="signup.html";
+}
+
+/* particle animation */
+
+const canvas = document.getElementById("particle-canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles=[];
+let mouse={x:null,y:null};
+
+window.addEventListener("mousemove",function(e){
+mouse.x=e.x;
+mouse.y=e.y;
+});
+
+class Particle{
+
+constructor(x,y,dx,dy,size){
+this.x=x;
+this.y=y;
+this.dx=dx;
+this.dy=dy;
+this.size=size;
+}
+
+draw(){
+ctx.beginPath();
+ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+ctx.fillStyle="rgba(255,255,255,0.8)";
+ctx.fill();
+}
+
+update(){
+
+this.x+=this.dx;
+this.y+=this.dy;
+
+if(this.x>canvas.width||this.x<0)this.dx*=-1;
+if(this.y>canvas.height||this.y<0)this.dy*=-1;
+
+this.draw();
+
+}
+
+}
+
+function init(){
+
+particles=[];
+
+for(let i=0;i<80;i++){
+
+let size=Math.random()*2+1;
+let x=Math.random()*canvas.width;
+let y=Math.random()*canvas.height;
+let dx=(Math.random()-0.5)*0.7;
+let dy=(Math.random()-0.5)*0.7;
+
+particles.push(new Particle(x,y,dx,dy,size));
+
+}
+
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+for(let i=0;i<particles.length;i++){
+particles[i].update();
+}
+
+requestAnimationFrame(animate);
+
+}
+
+init();
+animate();
+
+</script>
+
+</body>
+</html>

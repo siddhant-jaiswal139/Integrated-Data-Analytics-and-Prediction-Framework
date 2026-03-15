@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Create Account</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+background:linear-gradient(120deg,#021024,#0a3d62,#1e90ff);
+color:white;
+}
+
+/* glass card */
+
+.signup-card{
+width:420px;
+padding:45px;
+background:rgba(255,255,255,0.08);
+border-radius:30px;
+backdrop-filter:blur(20px);
+box-shadow:0 25px 60px rgba(0,0,0,0.5);
+text-align:center;
+}
+
+/* title */
+
+h2{
+margin-bottom:25px;
+font-size:30px;
+}
+
+/* inputs */
+
+input{
+width:100%;
+padding:15px;
+margin:12px 0;
+border:none;
+border-radius:15px;
+background:rgba(255,255,255,0.9);
+outline:none;
+font-size:14px;
+}
+
+/* button */
+
+button{
+width:100%;
+padding:15px;
+margin-top:18px;
+border:none;
+border-radius:18px;
+background:linear-gradient(135deg,#74b9ff,#0984e3);
+color:white;
+font-size:18px;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+box-shadow:0 0 25px #74b9ff;
+}
+
+.small{
+margin-top:20px;
+font-size:14px;
+opacity:0.8;
+}
+
+.small span{
+color:#74b9ff;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="signup-card">
+
+<h2>Create Account</h2>
+
+<input type="text" placeholder="Full Name">
+<input type="email" placeholder="Email Address">
+<input type="password" placeholder="Password">
+<input type="password" placeholder="Confirm Password">
+
+<button onclick="createAccount()">Create Account</button>
+
+<p class="small">
+Already have an account?
+<span onclick="goLogin()">Login</span>
+</p>
+
+</div>
+
+<script>
+
+/* After signup → open dashboard */
+
+function createAccount(){
+window.location.href="dashboard.html";
+}
+
+/* Back to login */
+
+function goLogin(){
+window.location.href="index.html";
+}
+
+</script>
+
+</body>
+</html>
