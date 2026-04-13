@@ -242,7 +242,7 @@ cursor:pointer;
 
 <div class="project">DataAI</div>
 
-<h2>Welcome Back, Akansha</h2>
+<h2 id="welcomeText">Welcome Back</h2>
 
 <input type="email" placeholder="Email address">
 <input type="password" placeholder="Password">
@@ -258,99 +258,125 @@ Are you new member?
 
 <script>
 
-/* open dashboard */
-
-function openDashboard(){
-window.location.href="dashboard.html";
-}
-
-/* open signup */
-
-function openSignup(){
-window.location.href="signup.html";
-}
-
-/* particle animation */
-
-const canvas = document.getElementById("particle-canvas");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let particles=[];
-let mouse={x:null,y:null};
-
-window.addEventListener("mousemove",function(e){
-mouse.x=e.x;
-mouse.y=e.y;
-});
-
-class Particle{
-
-constructor(x,y,dx,dy,size){
-this.x=x;
-this.y=y;
-this.dx=dx;
-this.dy=dy;
-this.size=size;
-}
-
-draw(){
-ctx.beginPath();
-ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
-ctx.fillStyle="rgba(255,255,255,0.8)";
-ctx.fill();
-}
-
-update(){
-
-this.x+=this.dx;
-this.y+=this.dy;
-
-if(this.x>canvas.width||this.x<0)this.dx*=-1;
-if(this.y>canvas.height||this.y<0)this.dy*=-1;
-
-this.draw();
-
-}
-
-}
-
-function init(){
-
-particles=[];
-
-for(let i=0;i<80;i++){
-
-let size=Math.random()*2+1;
-let x=Math.random()*canvas.width;
-let y=Math.random()*canvas.height;
-let dx=(Math.random()-0.5)*0.7;
-let dy=(Math.random()-0.5)*0.7;
-
-particles.push(new Particle(x,y,dx,dy,size));
-
-}
-
-}
-
-function animate(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-for(let i=0;i<particles.length;i++){
-particles[i].update();
-}
-
-requestAnimationFrame(animate);
-
-}
-
-init();
-animate();
-
-</script>
+    /* LOGIN FUNCTION */
+    
+    function openDashboard(){
+    
+    let email = document.querySelector("input[type='email']").value;
+    let password = document.querySelector("input[type='password']").value;
+    
+    let savedEmail = localStorage.getItem("useremail");
+    let savedPassword = localStorage.getItem("userpassword");
+    
+    if(email === savedEmail && password === savedPassword){
+    
+    window.location.href="dashboard.html";
+    
+    }else{
+    
+    alert("Invalid email or password");
+    
+    }
+    
+    }
+    
+    /* OPEN SIGNUP */
+    
+    function openSignup(){
+    window.location.href="signup.html";
+    }
+    
+    /* SHOW NAME ON LOGIN PAGE */
+    
+    window.onload=function(){
+    
+    let name = localStorage.getItem("username");
+    
+    if(name){
+    document.getElementById("welcomeText").innerText = "Welcome Back, " + name;
+    }
+    
+    }
+    
+    /* PARTICLE ANIMATION */
+    
+    const canvas = document.getElementById("particle-canvas");
+    const ctx = canvas.getContext("2d");
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    let particles=[];
+    let mouse={x:null,y:null};
+    
+    window.addEventListener("mousemove",function(e){
+    mouse.x=e.x;
+    mouse.y=e.y;
+    });
+    
+    class Particle{
+    
+    constructor(x,y,dx,dy,size){
+    this.x=x;
+    this.y=y;
+    this.dx=dx;
+    this.dy=dy;
+    this.size=size;
+    }
+    
+    draw(){
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fillStyle="rgba(255,255,255,0.8)";
+    ctx.fill();
+    }
+    
+    update(){
+    this.x+=this.dx;
+    this.y+=this.dy;
+    
+    if(this.x>canvas.width||this.x<0)this.dx*=-1;
+    if(this.y>canvas.height||this.y<0)this.dy*=-1;
+    
+    this.draw();
+    }
+    
+    }
+    
+    function init(){
+    
+    particles=[];
+    
+    for(let i=0;i<80;i++){
+    
+    let size=Math.random()*2+1;
+    let x=Math.random()*canvas.width;
+    let y=Math.random()*canvas.height;
+    let dx=(Math.random()-0.5)*0.7;
+    let dy=(Math.random()-0.5)*0.7;
+    
+    particles.push(new Particle(x,y,dx,dy,size));
+    
+    }
+    
+    }
+    
+    function animate(){
+    
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    for(let i=0;i<particles.length;i++){
+    particles[i].update();
+    }
+    
+    requestAnimationFrame(animate);
+    
+    }
+    
+    init();
+    animate();
+    
+    </script>
 
 </body>
 </html>

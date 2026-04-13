@@ -168,6 +168,91 @@ padding:8px;
 border-bottom:1px solid rgba(255,255,255,0.2);
 }
 
+/* CHATBOT BUTTON */
+
+#chatbotBtn{
+position:fixed;
+bottom:20px;
+right:20px;
+width:65px;
+height:65px;
+border-radius:50%;
+background:black;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:28px;
+cursor:pointer;
+box-shadow:0 0 15px white;
+animation:float 2s ease-in-out infinite;
+z-index:999;
+}
+
+/* floating animation */
+@keyframes float{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
+
+/* CHAT WINDOW */
+
+#chatWindow{
+position:fixed;
+bottom:100px;
+right:20px;
+width:300px;
+height:400px;
+background:black;
+border-radius:15px;
+display:none;
+flex-direction:column;
+overflow:hidden;
+box-shadow:0 0 20px white;
+z-index:999;
+}
+
+#chatHeader{
+background:#111;
+padding:10px;
+text-align:center;
+font-weight:bold;
+}
+
+#chatBody{
+flex:1;
+padding:10px;
+overflow-y:auto;
+font-size:14px;
+}
+
+#chatInput{
+border:none;
+padding:10px;
+outline:none;
+}
+#chatSuggestions{
+display:flex;
+flex-wrap:wrap;
+gap:5px;
+padding:5px;
+}
+
+#chatSuggestions button{
+background:#0984e3;
+border:none;
+border-radius:8px;
+padding:5px 8px;
+color:white;
+cursor:pointer;
+font-size:11px;
+}
+
+#chatSuggestions button:hover{
+background:#00cec9;
+}
+
 </style>
 </head>
 
@@ -190,7 +275,7 @@ border-bottom:1px solid rgba(255,255,255,0.2);
 </div>
 
 <div class="loaderBox">
-<h2 class="aiText">Welcome Akansha</h2>
+    <h2 class="aiText">Welcome <span id="userName"></span></h2>
 <p class="loadingText">Initializing DataAI Analytics Engine...</p>
 <div class="loader"></div>
 </div>
@@ -274,21 +359,7 @@ border-bottom:1px solid rgba(255,255,255,0.2);
 
 <h3>Model Comparison</h3>
 
-<table>
-
-<tr>
-<th>Model</th>
-<th>Accuracy</th>
-<th>Time</th>
-</tr>
-
-<tr><td>KNN</td><td>89%</td><td>0.8s</td></tr>
-<tr><td>Clustering</td><td>85%</td><td>0.6s</td></tr>
-<tr><td>Ridge Regression</td><td>91%</td><td>0.4s</td></tr>
-<tr><td>Lasso Regression</td><td>90%</td><td>0.5s</td></tr>
-<tr><td>CNN</td><td>94%</td><td>1.2s</td></tr>
-
-</table>
+<table id="modelTable"></table>
 
 </div>
 
@@ -325,14 +396,24 @@ border-bottom:1px solid rgba(255,255,255,0.2);
 
 <script>
 
+let backendData = null;
+let dataLoaded = false;
 let chart;
 
 /* loading screen */
 
 window.onload=function(){
+
+let name = localStorage.getItem("username");
+
+if(name){
+document.getElementById("userName").innerText = name;
+}
+
 setTimeout(function(){
 document.getElementById("loadingScreen").style.display="none";
 },3000);
+
 }
 
 /* logout */
@@ -341,23 +422,60 @@ function logout(){
 window.location.href="index.html";
 }
 
-/* CSV upload preview */
+/* logout */
 
-document.getElementById("fileInput").addEventListener("change", function(event){
-
-const file = event.target.files[0];
-const reader = new FileReader();
-
-reader.onload = function(e){
-
-const text = e.target.result;
-const rows = text.split("\n").map(r=>r.split(","));
-
-displayTable(rows);
-
+function logout(){
+window.location.href="index.html";
 }
 
+
+/* CSV upload preview + backend */
+
+document.getElementById("fileInput").addEventListener("change", function(){
+
+let file = this.files[0];
+
+/* preview table */
+let reader = new FileReader();
+reader.onload = function(e){
+let text = e.target.result;
+let rows = text.split("\n").map(r => r.split(","));
+displayTable(rows);
+}
 reader.readAsText(file);
+
+/* send to backend */
+let formData = new FormData();
+formData.append("file", file);
+
+fetch("http://127.0.0.1:5000/upload",{
+method:"POST",
+body:formData
+})
+.then(res => res.json())
+.then(data => {
+
+console.log("Backend Data:", data);   // debug
+
+backendData = data;
+dataLoaded = true;   // ✅ VERY IMPORTANT
+updateModelTable(data.results);
+
+let best = data.best_model;
+
+document.getElementById("resultText").innerText =
+"Rows: "+data.rows+
+"\nColumns: "+data.columns+
+"\nBest Model: "+ best.model +
+"\nAccuracy: "+ best.accuracy;
+
+// ✅ auto show chart after loading
+setTimeout(() => {
+    showHistogram();
+}, 300);
+
+})
+.catch(err => console.log(err));
 
 });
 
@@ -389,15 +507,20 @@ table.appendChild(tr);
 
 function showHistogram(){
 
+    if(!dataLoaded){
+alert("Please wait, dataset is still loading...");
+return;
+}
+
 if(chart) chart.destroy();
 
-chart=new Chart(chartCanvas,{
+chart = new Chart(chartCanvas,{
 type:"bar",
 data:{
-labels:["20","25","30","35","40"],
+labels: backendData.chart_data.first_column,
 datasets:[{
-label:"Distribution",
-data:[3,5,2,6,4],
+label:"Values",
+data: backendData.chart_data.second_column,
 backgroundColor:"#0984e3"
 }]
 }
@@ -405,21 +528,25 @@ backgroundColor:"#0984e3"
 
 }
 
+
 function showScatter(){
+
+    if(!dataLoaded){
+alert("Please wait, dataset is still loading...");
+return;
+}
 
 if(chart) chart.destroy();
 
-chart=new Chart(chartCanvas,{
+chart = new Chart(chartCanvas,{
 type:"scatter",
 data:{
 datasets:[{
 label:"Scatter",
-data:[
-{x:10,y:20},
-{x:15,y:30},
-{x:20,y:25},
-{x:25,y:40}
-],
+data: backendData.chart_data.first_column.map((x,i)=>({
+x:x,
+y:backendData.chart_data.second_column[i]
+})),
 backgroundColor:"#00cec9"
 }]
 }
@@ -427,17 +554,23 @@ backgroundColor:"#00cec9"
 
 }
 
+
 function showBar(){
+
+    if(!dataLoaded){
+alert("Please wait, dataset is still loading...");
+return;
+}
 
 if(chart) chart.destroy();
 
-chart=new Chart(chartCanvas,{
+chart = new Chart(chartCanvas,{
 type:"bar",
 data:{
-labels:["Product A","Product B","Product C"],
+labels: backendData.chart_data.first_column,
 datasets:[{
-label:"Sales",
-data:[120,190,90],
+label:"Cluster Labels",
+data: backendData.chart_data.cluster_labels,
 backgroundColor:"#6c5ce7"
 }]
 }
@@ -446,6 +579,11 @@ backgroundColor:"#6c5ce7"
 }
 
 function showPie(){
+
+    if(!dataLoaded){
+alert("Upload dataset first");
+return;
+}
 
 if(chart) chart.destroy();
 
@@ -463,6 +601,11 @@ backgroundColor:["#00b894","#d63031"]
 }
 
 function showCandle(){
+
+    if(!dataLoaded){
+alert("Upload dataset first");
+return;
+}
 
 if(chart) chart.destroy();
 
@@ -482,14 +625,192 @@ data:[
 
 }
 
+function updateModelTable(results){
+
+let table = document.getElementById("modelTable");
+
+table.innerHTML = `
+<tr>
+<th>Model</th>
+<th>Accuracy</th>
+<th>Time</th>
+</tr>
+`;
+
+results.forEach(r => {
+table.innerHTML += `
+<tr>
+<td>${r.model}</td>
+<td>${r.accuracy}</td>
+<td>${r.time}s</td>
+</tr>
+`;
+});
+
+}
+
 /* model simulation */
 
 function runModel(model){
+
+if(!dataLoaded){
+alert("Please wait, dataset is still loading...");
+return;
+}
+
+let selected = backendData.results.find(r => r.model.includes(model));
+
+if(selected){
 document.getElementById("resultText").innerText =
-model+" model running...\nAccuracy: 91%";
+model + " Accuracy: " + selected.accuracy;
+} 
+else if(model === "Clustering"){
+document.getElementById("resultText").innerText =
+"KMeans clustering completed";
+}
+else{
+document.getElementById("resultText").innerText =
+model + " not implemented";
+}
+
+}
+
+function toggleChat(){
+let chat = document.getElementById("chatWindow");
+
+if(chat.style.display === "flex"){
+chat.style.display = "none";
+}else{
+chat.style.display = "flex";
+
+// 👇 show welcome message ONLY first time
+let chatBody = document.getElementById("chatBody");
+
+if(chatBody.innerHTML.trim() === ""){
+addMessage("Bot", "Heyo 👋, how can I help you?");
+}
+}
+}
+
+function handleChat(e){
+if(e.key === "Enter"){
+let input = document.getElementById("chatInput");
+let msg = input.value.trim();
+if(!msg) return;
+
+addMessage("You", msg);
+
+let reply = generateReply(msg);
+
+setTimeout(()=>{
+addMessage("Bot", reply);
+},500);
+
+input.value="";
+}
+}
+
+function addMessage(sender, text){
+let chatBody = document.getElementById("chatBody");
+chatBody.innerHTML += `<p><b>${sender}:</b> ${text}</p>`;
+chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function generateReply(msg){
+
+msg = msg.toLowerCase();
+
+if(!backendData){
+return "Please upload dataset first!";
+}
+
+// BASIC INFO
+if(msg.includes("rows")){
+return "Dataset has " + backendData.rows + " rows";
+}
+
+if(msg.includes("columns")){
+return "Dataset has " + backendData.columns + " columns";
+}
+
+// MODEL INFO
+if(msg.includes("best")){
+return "Best Model is " + backendData.best_model.model + 
+" with accuracy " + backendData.best_model.accuracy;
+}
+
+if(msg.includes("accuracy")){
+let text = "Model Accuracies:\n";
+backendData.results.forEach(r=>{
+text += r.model + ": " + r.accuracy + "\n";
+});
+return text;
+}
+
+if(msg.includes("models")){
+return backendData.results.map(r => r.model).join(", ");
+}
+
+// DATA INSIGHTS (🔥 NEW)
+if(msg.includes("highest")){
+return "Max value in first column: " + Math.max(...backendData.chart_data.first_column);
+}
+
+if(msg.includes("lowest")){
+return "Min value in first column: " + Math.min(...backendData.chart_data.first_column);
+}
+
+if(msg.includes("average")){
+let arr = backendData.chart_data.first_column;
+let avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+return "Average of first column: " + avg.toFixed(2);
+}
+
+// CLUSTER INFO
+if(msg.includes("cluster")){
+return "Clustering completed. Data grouped into 3 clusters.";
+}
+
+// HELP
+if(msg.includes("help")){
+return "You can ask about rows, columns, best model, accuracy, average, highest, lowest.";
+}
+
+return "Try asking: rows, columns, best model, accuracy, average, highest, lowest.";
+}
+function quickAsk(text){
+
+addMessage("You", text);
+
+let reply = generateReply(text);
+
+setTimeout(()=>{
+addMessage("Bot", reply);
+},500);
+
 }
 
 </script>
+<!-- 🤖 CHATBOT BUTTON -->
+<div id="chatbotBtn" onclick="toggleChat()">
+    🤖
+</div>
+
+<!-- 💬 CHAT WINDOW -->
+<div id="chatWindow">
+    <div id="chatHeader">AI Assistant</div>
+    <div id="chatBody"></div>
+
+<div id="chatSuggestions">
+<button onclick="quickAsk('rows')">Rows</button>
+<button onclick="quickAsk('columns')">Columns</button>
+<button onclick="quickAsk('best model')">Best Model</button>
+<button onclick="quickAsk('accuracy')">Accuracy</button>
+<button onclick="quickAsk('average')">Average</button>
+</div>
+    <input type="text" id="chatInput" placeholder="Ask about dataset..."
+        onkeypress="handleChat(event)">
+</div>
 
 </body>
 </html>
